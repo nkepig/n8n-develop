@@ -1,0 +1,10 @@
+# Local env files (contain bcrypt hashes / registry creds).
+.env
+.env.local
+deploy/.env
+
+# Build artifacts.
+*.log
+
+# OS junk.
+.DS_Store

@@ -1,0 +1,39 @@
+# Customer-side docker-compose.
+#
+# Usage on the customer's machine:
+#   1. Copy .env.example -> .env and fill in the owner password hash + image ref.
+#   2. docker compose up -d
+#   3. Open http://<host>:5678 and log in with the owner email + plaintext
+#      password that produced the hash in .env.
+#
+# On first start, the entrypoint imports the workflows baked into the image.
+# The data volume persists workflows across restarts; removing the volume
+# triggers a fresh import on next start.
+
+services:
+  n8n:
+    image: ${N8N_IMAGE}            # e.g. registry.example.com/n8n/n8n-client-a:1.0
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    environment:
+      # --- Owner bootstrap (env-managed). Required for first-start import. ---
+      N8N_INSTANCE_OWNER_MANAGED_BY_ENV: "true"
+      N8N_INSTANCE_OWNER_EMAIL: ${OWNER_EMAIL}
+      N8N_INSTANCE_OWNER_PASSWORD_HASH: ${OWNER_PASSWORD_HASH}
+      N8N_INSTANCE_OWNER_FIRST_NAME: ${OWNER_FIRST_NAME:-Admin}
+      N8N_INSTANCE_OWNER_LAST_NAME: ${OWNER_LAST_NAME:-Client}
+      # --- Public URL (set to the customer-facing address). ---
+      N8N_EDITOR_BASE_URL: ${N8N_EDITOR_BASE_URL:-}
+      N8N_WEBHOOK_URL: ${N8N_WEBHOOK_URL:-}
+      # --- Execution mode. Queue mode requires redis; regular mode is fine for a
+      #     single-node customer box. ---
+      EXECUTIONS_MODE: ${EXECUTIONS_MODE:-regular}
+      # --- Keep built-in workflows dir in sync with the image's entrypoint. ---
+      N8N_BUILTIN_WORKFLOWS_DIR: /workflows
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+volumes:
+  n8n_data:
