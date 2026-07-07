@@ -5,6 +5,7 @@ deploy/.env
 
 # Build artifacts.
 *.log
+.last-built-image
 
 # OS junk.
 .DS_Store

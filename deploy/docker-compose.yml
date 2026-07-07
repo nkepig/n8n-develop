@@ -1,12 +1,13 @@
 # Customer-side docker-compose.
 #
 # Usage on the customer's machine:
-#   1. Copy .env.example -> .env and fill in the owner password hash + image ref.
+#   1. Copy .env.example -> .env and fill in the image ref + public URL.
 #   2. docker compose up -d
-#   3. Open http://<host>:5678 and log in with the owner email + plaintext
-#      password that produced the hash in .env.
+#   3. Open http://<host>:5678 in the browser and complete the owner setup
+#      wizard (pick your own email + password). On first start the
+#      entrypoint waits for setup to finish, then auto-imports the baked-in
+#      workflows and restarts n8n.
 #
-# On first start, the entrypoint imports the workflows baked into the image.
 # The data volume persists workflows across restarts; removing the volume
 # triggers a fresh import on next start.
 
@@ -18,12 +19,12 @@ services:
     ports:
       - "${N8N_PORT:-5678}:5678"
     environment:
-      # --- Owner bootstrap (env-managed). Required for first-start import. ---
-      N8N_INSTANCE_OWNER_MANAGED_BY_ENV: "true"
-      N8N_INSTANCE_OWNER_EMAIL: ${OWNER_EMAIL}
-      N8N_INSTANCE_OWNER_PASSWORD_HASH: ${OWNER_PASSWORD_HASH}
-      N8N_INSTANCE_OWNER_FIRST_NAME: ${OWNER_FIRST_NAME:-Admin}
-      N8N_INSTANCE_OWNER_LAST_NAME: ${OWNER_LAST_NAME:-Client}
+      # --- Chinese UI + Enterprise mock (baked into image, repeat here for clarity) ---
+      N8N_DEFAULT_LOCALE: zh-CN
+      N8N_ENTERPRISE_MOCK: "true"
+      NODE_ENV: development
+      # Allow plain-HTTP access (no TLS). Set to "true" behind a TLS proxy.
+      N8N_SECURE_COOKIE: "false"
       # --- Public URL (set to the customer-facing address). ---
       N8N_EDITOR_BASE_URL: ${N8N_EDITOR_BASE_URL:-}
       N8N_WEBHOOK_URL: ${N8N_WEBHOOK_URL:-}
